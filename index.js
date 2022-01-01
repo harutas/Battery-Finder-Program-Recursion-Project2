@@ -1,3 +1,12 @@
+htmlString();
+
+const config = {
+    brandSelectElement : document.getElementById("brand"),
+    modelSelectElement : document.getElementById("model"),
+    inputElement : document.getElementById("accessory"),
+    batteryDiv : document.getElementById("battery"),
+};
+
 const battery =
     [{
         "batteryName": "WKL-78",
@@ -158,7 +167,7 @@ const camera =
 
 class HelperFunction{
 
-    // ブランドの配列を返すメソッド
+    // カメラのブランドの配列を返すメソッド
     static brandList(){
         let brandList = {};
         for (let i = 0; i < camera.length; i++){
@@ -169,7 +178,7 @@ class HelperFunction{
 
     // 現在選択されているブランドのモデルの配列を返すメソッド
     static modelList(){
-        let currBrand = document.getElementById("brand").value;
+        let currBrand = config.brandSelectElement.value;
         let modelList = {};
         for (let i = 0; i < camera.length; i++){
             if(camera[i].brand === currBrand){
@@ -185,9 +194,9 @@ class HelperFunction{
     }
 
     // 使用可能時間を計算するメソッド
-    static estimateBattery(camera, battery, accessoryConsumption){
-        let wh = battery.voltage * battery.capacityAh;
-        let w = camera.powerConsumptionWh + accessoryConsumption;
+    static estimateBattery(cameraobj, batteryobj, accessoryConsumption){
+        let wh = batteryobj.voltage * batteryobj.capacityAh;
+        let w = cameraobj.powerConsumptionWh + accessoryConsumption;
         let hour = wh / w;
         return hour.toFixed(1);
     }
@@ -195,79 +204,43 @@ class HelperFunction{
     // 現在選択されているカメラオブジェクトを返すメソッド
     static currCameraObj(){
         for (let i = 0; i < camera.length; i++){
-            if (camera[i].brand === brandSelectElement.value && camera[i].model === modelSelectElement.value){
+            if (camera[i].brand === config.brandSelectElement.value && camera[i].model === config.modelSelectElement.value){
                 return camera[i];
             }
         }
     }
 
-    // step1~3を生成するメソッド
-    static generateStep1To3(){
+}
+
+// step1,2,4を生成するメソッド
+class Steps{
+
+    static generateStep1(){
         // step1
-        let step1Div = document.createElement("div");
-        let step1 = document.createElement("p");
-        step1.classList.add("mt-3");
-        step1.innerText = "Step1: Select your brand";
-        let brandSelect = document.createElement("select");
-        brandSelect.id = "brand";
-    
         // 選択肢を追加
         let brands = HelperFunction.brandList();
         for (let key in brands){
             let brandOption = document.createElement("option");
             brandOption.value = brands[key];
             brandOption.innerText = brands[key];
-            brandSelect.append(brandOption);
+            config.brandSelectElement.append(brandOption);
         }
-        
-        step1Div.append(step1, brandSelect);
-        target.append(step1Div);
+    }
 
-        // step2
-        let step2Div = document.createElement("div");
-        let step2 = document.createElement("p");
-        step2.classList.add("mt-3");
-        step2.innerText = "Step2: Select your model";
-        let modelSelect = document.createElement("select");
-        modelSelect.id = "model";
-    
-        // 初期の選択肢は最初のブランドのモデル
+    static generateStep2(){
+        // step2    
+        // 選択肢を追加
         let models = HelperFunction.modelList();
         for (let key in models){
             let modelOption = document.createElement("option");
             modelOption.value = models[key];
             modelOption.innerHTML = models[key];
-            modelSelect.append(modelOption);
+            config.modelSelectElement.append(modelOption);
         }
-    
-        step2Div.append(step2, modelSelect);
-        target.append(step2Div);
-
-        // step3
-        let step3Div = document.createElement("div");
-        let step3 = document.createElement("p");
-        step3.classList.add("mt-3");
-        step3.innerText = "Step3: Input accessory power consumption";
-        let input = document.createElement("input");
-        input.id = "accessory";
-        input.type = "number";
-        input.max = "100";
-        input.min = "0";
-        input.value = "55";
-
-        step3Div.append(step3, input);
-        target.append(step3Div);
     }
     
-    // step4
     static generateStep4(){
-        let step4Div = document.createElement("div");
-        let step4 = document.createElement("p");
-        step4.classList.add("mt-3");
-        step4.innerText = "Step4: Choose your battery";
-        let batteryDiv = document.createElement("div");
-        batteryDiv.id = "battery";
-    
+        // step4
         for (let i = 0; i < sortedBattery.length; i++){
             let batteryLabel = document.createElement("div");
             batteryLabel.classList.add("bg-light", "border", "border-dark", "d-flex", "justify-content-between", "p-2");
@@ -277,41 +250,38 @@ class HelperFunction{
             batteryName.innerText = sortedBattery[i].batteryName;
             // batteryEstimate
             let estimate = document.createElement("p");
-            estimate.innerText = "Estimate " + HelperFunction.estimateBattery(HelperFunction.currCameraObj(), sortedBattery[i], parseInt(inputElement.value)) + " hours";
+            estimate.innerText = "Estimate " + HelperFunction.estimateBattery(HelperFunction.currCameraObj(), sortedBattery[i], parseInt(config.inputElement.value)) + " hours";
     
             batteryLabel.append(batteryName, estimate);
-            batteryDiv.append(batteryLabel);
+            config.batteryDiv.append(batteryLabel);
         }
-    
-        step4Div.append(step4, batteryDiv);
-        target.append(step4Div);
     }
 }
 
 class changeFunction{
 
     // モデルの選択肢を更新する
-    static changeModel(newModels){
+    static changeModel(nextModels){
         // モデルの選択肢を初期化
-        modelSelectElement.innerHTML = "";
+        config.modelSelectElement.innerHTML = "";
         // 選択肢を生成してappendする
-        for (let key in newModels){
+        for (let key in nextModels){
             let option = document.createElement("option");
-            option.value = newModels[key];
-            option.innerHTML = newModels[key];
-            modelSelectElement.append(option);
+            option.value = nextModels[key];
+            option.innerHTML = nextModels[key];
+            config.modelSelectElement.append(option);
         }
     }
     
     // バッテリーを更新する関数
     static changeBatteryLabel(){
-        // 一度空にする
-        batteryDiv.innerHTML = "";
+        // バッテリーの一覧を初期化
+        config.batteryDiv.innerHTML = "";
 
-        if (inputElement.value === "") return "";
+        if (config.inputElement.value === "") return "";
     
         for (let i = 0; i < sortedBattery.length; i++){
-            if (HelperFunction.canUseBattery(sortedBattery[i], HelperFunction.currCameraObj(), parseInt(inputElement.value))){
+            if (HelperFunction.canUseBattery(sortedBattery[i], HelperFunction.currCameraObj(), parseInt(config.inputElement.value))){
                 let batteryLabel = document.createElement("div");
                 batteryLabel.classList.add("bg-light", "border", "border-dark", "d-flex", "justify-content-between", "p-2");
                 // batteryName
@@ -320,16 +290,43 @@ class changeFunction{
                 batteryName.innerText = sortedBattery[i].batteryName;
                 // batteryEstimate
                 let estimate = document.createElement("p");
-                estimate.innerText = "Estimate " + HelperFunction.estimateBattery(HelperFunction.currCameraObj(), sortedBattery[i], parseInt(inputElement.value)) + " hours";
+                estimate.innerText = "Estimate " + HelperFunction.estimateBattery(HelperFunction.currCameraObj(), sortedBattery[i], parseInt(config.inputElement.value)) + " hours";
         
                 batteryLabel.append(batteryName, estimate);
                 document.getElementById("battery").append(batteryLabel);
             }
-    
         }
     }
 }
 
+function htmlString(){
+    const target = document.getElementById("target");
+    target.innerHTML = `
+    <div class="bg-primary py-2">
+        <h1 class="text-white text-center">Battery Finder Program</h1>
+    </div>
+    <div class="d-flex align-items-center flex-column px-3">
+        <div class="col-10">
+            <div id="step1">
+                <p class="mt-3">Step1: Select your brand</p>
+                <select name="brandSelection" id="brand"></select>
+            </div>
+            <div id="step2">
+                <p class="mt-3">Step2: Select your model</p>
+                <select name="modelSelect" id="model"></select>
+            </div>
+            <div id="step3">
+                <p class="mt-3">Step3: Input accessory power consumption</p>
+                <input type="number" name="accessoryConsumption" id="accessory" max="100" min="0" value="55">
+            </div>
+            <div id="step4">
+                <p class="mt-3">Step4: Choose your battery</p>
+                <div id="battery"></div>
+            </div>
+        </div>
+    </div>
+    `;
+}
 
 // バッテリーをアルファベット順に並び替える
 const sortedBattery = battery.slice();
@@ -342,27 +339,23 @@ sortedBattery.sort(function(a, b){
 })
 
 // htmlの生成
-const target = document.getElementById("target");
-HelperFunction.generateStep1To3();
-const brandSelectElement = document.getElementById("brand");
-const modelSelectElement = document.getElementById("model");
-const inputElement = document.getElementById("accessory");
-HelperFunction.generateStep4();
-const batteryDiv = document.getElementById("battery");
+Steps.generateStep1();
+Steps.generateStep2();
+Steps.generateStep4();
 
 // addEventListener
 // ブランドが変更されたら、モデルの選択肢を更新・バッテリーを更新する
-brandSelectElement.addEventListener("change", function(){
-    changeFunction.changeModel(HelperFunction.modelList(brandSelectElement.value));
+config.brandSelectElement.addEventListener("change", function(){
+    changeFunction.changeModel(HelperFunction.modelList());
     changeFunction.changeBatteryLabel();
 });
 
 // モデルが変更されたらバッテリーを更新する
-modelSelectElement.addEventListener("change", function(){
+config.modelSelectElement.addEventListener("change", function(){
     changeFunction.changeBatteryLabel();
 });
 
 // アクセサリーの消費電力が変更されたらバッテリーを更新する。
-inputElement.addEventListener("change", function(){
+config.inputElement.addEventListener("change", function(){
     changeFunction.changeBatteryLabel();
 });
